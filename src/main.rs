@@ -1,34 +1,19 @@
-use spindle::task::LocalTask;
-use spindle::worker::Worker;
+use spindle::io_driver::IoDriver;
+use std::net::SocketAddr;
 
-fn main() {
-    println!("Spindle runtime starting...\n");
+fn main() -> std::io::Result<()> {
+    println!("=== Spindle Game Server ===\n");
 
-    // 워커 생성
-    let mut worker = Worker::new(0);
+    // 서버 주소 설정
+    let addr: SocketAddr = "127.0.0.1:8080".parse().unwrap();
 
-    // 일반 작업들을 큐에 추가
-    worker.push(LocalTask::local(async {
-        println!("Task 1 executing");
-    }));
+    // IoDriver 생성 및 실행
+    let mut driver = IoDriver::new(addr)?;
 
-    worker.push(LocalTask::local(async {
-        println!("Task 2 executing");
-    }));
+    println!("Server starting...");
+    println!("Connect with: telnet 127.0.0.1 8080");
+    println!("Or use a custom client\n");
 
-    worker.push(LocalTask::local(async {
-        println!("Task 3 executing");
-    }));
-
-    // 최우선 작업 설정 (next 슬롯)
-    worker.set_next(LocalTask::local(async {
-        println!("PRIORITY: Next task executing (runs first!)");
-    }));
-
-    println!("Starting worker execution...\n");
-
-    // 워커 실행 - next 작업이 먼저 실행됨
-    worker.run();
-
-    println!("\nWorker finished!");
+    // Reactor loop 실행
+    driver.run()
 }
